@@ -1,0 +1,54 @@
+flowchart TD
+    SPLASH([🚀 스플래시]) --> ONBOARDING
+
+    ONBOARDING([👋 온보딩]) --> LOGIN
+    ONBOARDING --> SIGNUP([📝 회원가입])
+    SIGNUP --> HOME
+
+    LOGIN([🔐 로그인]) --> HOME
+
+    HOME([🏠 홈 타임라인]) --> RECORD_1
+    HOME --> TRIP_LIST
+    HOME --> MAP
+    HOME --> MYPAGE
+    HOME --> DIARY_WRITE
+
+    subgraph 기록하기
+        RECORD_1([📷 기록하기 ①\n사진·날짜·장소·날씨]) --> RECORD_2
+        RECORD_2([✏️ 기록하기 ②\n일기·공유·여행연결]) --> HOME
+        RECORD_2 --> AI_ASSIST
+        AI_ASSIST([✨ AI 글쓰기 도우미\n초안·이어쓰기·제목추천]) --> RECORD_2
+    end
+
+    subgraph 지도
+        MAP([🗺️ 지도\n전체 기록 핀]) --> MAP_DETAIL
+        MAP_DETAIL([📍 핀 상세 팝업]) --> RECORD_DETAIL
+    end
+
+    subgraph 여행 앨범
+        TRIP_LIST([✈️ 여행 목록]) --> TRIP_DETAIL
+        TRIP_DETAIL([📖 여행 상세\n사진·일기·지도·코스]) --> DIARY_WRITE
+        TRIP_DETAIL --> RECORD_DETAIL
+    end
+
+    subgraph 일기
+        DIARY_WRITE([📝 여행 일기 작성]) --> TRIP_DETAIL
+        DIARY_WRITE --> AI_ASSIST
+    end
+
+    subgraph 기록 상세
+        RECORD_DETAIL([🔍 기록 상세 보기]) --> DIARY_WRITE
+        RECORD_DETAIL --> MAP
+    end
+
+    subgraph 마이페이지
+        MYPAGE([👤 마이페이지]) --> INVITE
+        MYPAGE --> AI_SETTING([⚙️ AI 도우미 설정])
+        MYPAGE --> EXPORT([📤 데이터 내보내기])
+        INVITE([💌 공유 멤버 초대]) --> MYPAGE
+    end
+
+    style AI_ASSIST fill:#fff9e0,stroke:#f0c040
+    style AI_SETTING fill:#fff9e0,stroke:#f0c040
+    style SPLASH fill:#1a1a1a,color:#fff,stroke:#333
+    style HOME fill:#222,color:#fff,stroke:#444

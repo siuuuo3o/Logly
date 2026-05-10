@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.siuuuuu.logly_backend.domain.notice.mapper.NoticeMapper">
+
+    <select id="findAll" resultType="com.siuuuuu.logly_backend.domain.notice.dto.NoticeResponse">
+        SELECT
+            id,
+            title,
+            content,
+            important,
+            DATE_FORMAT(created_at, '%Y.%m.%d') AS createdAt
+        FROM notice
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

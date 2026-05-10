@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.siuuuuu.logly_backend.domain.trip.mapper.TripMapper">
+
+    <resultMap id="TripResultMap" type="com.siuuuuu.logly_backend.domain.trip.dto.TripResponse">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="coverImageUrl" column="cover_image_url"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="isActive" column="is_active"/>
+        <result property="recordCount" column="record_count"/>
+        <result property="diaryCount" column="diary_count"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findAllByUserId" resultMap="TripResultMap">
+        SELECT
+            t.id,
+            t.created_by                                                           AS user_id,
+            t.title,
+            t.cover_image_url,
+            t.start_date,
+            t.end_date,
+            t.is_active,
+            t.created_at,
+            COUNT(DISTINCT r.id)                                                   AS record_count,
+            COUNT(DISTINCT CASE WHEN r.content IS NOT NULL AND r.content != '' THEN r.id END) AS diary_count
+        FROM trip t
+                 LEFT JOIN record r ON t.id = r.trip_id
+        WHERE t.created_by = #{userId}
+        GROUP BY t.id
+        ORDER BY t.created_at DESC
+    </select>
+
+    <select id="findById" resultMap="TripResultMap">
+        SELECT
+            t.id,
+            t.created_by                                                           AS user_id,
+            t.title,
+            t.cover_image_url,
+            t.start_date,
+            t.end_date,
+            t.is_active,
+            t.created_at,
+            COUNT(DISTINCT r.id)                                                   AS record_count,
+            COUNT(DISTINCT CASE WHEN r.content IS NOT NULL AND r.content != '' THEN r.id END) AS diary_count
+        FROM trip t
+                 LEFT JOIN record r ON t.id = r.trip_id
+        WHERE t.id = #{id}
+        GROUP BY t.id
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM trip
+        WHERE created_by = #{userId}
+    </select>
+
+</mapper>

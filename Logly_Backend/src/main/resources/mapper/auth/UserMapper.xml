@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.siuuuuu.logly_backend.domain.auth.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.siuuuuu.logly_backend.domain.auth.dto.UserQueryDto">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="nickname" column="nickname"/>
+        <result property="profileImageUrl" column="profile_image_url"/>
+        <result property="provider" column="provider"/>
+        <result property="providerId" column="provider_id"/>
+    </resultMap>
+
+    <select id="findByEmail" resultMap="UserResultMap">
+        SELECT id, email, password, nickname, profile_image_url, provider, provider_id
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <select id="findById" resultMap="UserResultMap">
+        SELECT id, email, password, nickname, profile_image_url, provider, provider_id
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+</mapper>

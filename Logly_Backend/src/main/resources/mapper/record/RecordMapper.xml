@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.siuuuuu.logly_backend.domain.record.mapper.RecordMapper">
+
+    <resultMap id="PlaceResultMap" type="com.siuuuuu.logly_backend.domain.place.dto.PlaceResponse">
+        <id property="id" column="place_id"/>
+        <result property="name" column="place_name"/>
+        <result property="address" column="place_address"/>
+        <result property="latitude" column="place_latitude"/>
+        <result property="longitude" column="place_longitude"/>
+        <result property="createdAt" column="place_created_at"/>
+    </resultMap>
+
+    <resultMap id="CategoryResultMap" type="com.siuuuuu.logly_backend.domain.category.dto.CategoryResponse">
+        <id property="id" column="cat_id"/>
+        <result property="name" column="cat_name"/>
+        <result property="color" column="cat_color"/>
+        <result property="icon" column="cat_icon"/>
+        <result property="isDefault" column="cat_is_default"/>
+    </resultMap>
+
+    <resultMap id="RecordImageResultMap" type="com.siuuuuu.logly_backend.domain.record.dto.RecordImageDto">
+        <id property="id" column="img_id"/>
+        <result property="imageUrl" column="img_url"/>
+        <result property="isRepresentative" column="img_is_representative"/>
+        <result property="orderIndex" column="img_order_index"/>
+    </resultMap>
+
+    <resultMap id="RecordResultMap" type="com.siuuuuu.logly_backend.domain.record.dto.RecordResponse">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="tripId" column="trip_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="diaryTitle" column="diary_title"/>
+        <result property="weather" column="weather"/>
+        <result property="temperature" column="temperature"/>
+        <result property="visibility" column="visibility"/>
+        <result property="recordedAt" column="recorded_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <association property="place" resultMap="PlaceResultMap"/>
+        <association property="category" resultMap="CategoryResultMap"/>
+        <collection property="images" resultMap="RecordImageResultMap"/>
+    </resultMap>
+
+    <sql id="recordColumns">
+        r.id,
+        r.user_id,
+        r.trip_id,
+        r.type,
+        r.content,
+        r.diary_title,
+        r.weather,
+        r.temperature,
+        r.visibility,
+        r.recorded_at,
+        r.created_at,
+        r.updated_at,
+        p.id        AS place_id,
+        p.name      AS place_name,
+        p.address   AS place_address,
+        p.latitude  AS place_latitude,
+        p.longitude AS place_longitude,
+        p.created_at AS place_created_at,
+        c.id        AS cat_id,
+        c.name      AS cat_name,
+        c.color     AS cat_color,
+        c.icon      AS cat_icon,
+        c.is_default AS cat_is_default,
+        ri.id       AS img_id,
+        ri.image_url AS img_url,
+        ri.is_representative AS img_is_representative,
+        ri.order_index AS img_order_index
+    </sql>
+
+    <select id="findTimelineByUserId" resultMap="RecordResultMap">
+        SELECT
+        <include refid="recordColumns"/>
+        FROM record r
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        LEFT JOIN record_image ri ON r.id = ri.record_id
+        WHERE r.user_id = #{userId}
+        ORDER BY r.recorded_at DESC, r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findByIdWithDetails" resultMap="RecordResultMap">
+        SELECT
+        <include refid="recordColumns"/>
+        FROM record r
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        LEFT JOIN record_image ri ON r.id = ri.record_id
+        WHERE r.id = #{id}
+        ORDER BY ri.order_index ASC
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM record
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findByTripId" resultMap="RecordResultMap">
+        SELECT
+        <include refid="recordColumns"/>
+        FROM record r
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        LEFT JOIN record_image ri ON r.id = ri.record_id
+        WHERE r.trip_id = #{tripId}
+        ORDER BY r.recorded_at ASC, r.created_at ASC, ri.order_index ASC
+    </select>
+
+    <resultMap id="MapRecordResultMap" type="com.siuuuuu.logly_backend.domain.record.dto.MapRecordDto">
+        <id property="id" column="id"/>
+        <result property="type" column="type"/>
+        <result property="placeName" column="place_name"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="representativeImageUrl" column="representative_image_url"/>
+        <result property="recordedAt" column="recorded_at"/>
+        <result property="tripId" column="trip_id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="categoryColor" column="category_color"/>
+        <result property="categoryIcon" column="category_icon"/>
+    </resultMap>
+
+    <select id="findMapRecordsByUserId" resultMap="MapRecordResultMap">
+        SELECT
+            r.id,
+            r.type,
+            p.name      AS place_name,
+            p.latitude,
+            p.longitude,
+            (
+                SELECT ri.image_url
+                FROM record_image ri
+                WHERE ri.record_id = r.id
+                ORDER BY ri.is_representative DESC, ri.order_index ASC
+                LIMIT 1
+            )           AS representative_image_url,
+            DATE_FORMAT(r.recorded_at, '%Y-%m-%d') AS recorded_at,
+            r.trip_id,
+            c.id        AS category_id,
+            c.name      AS category_name,
+            c.color     AS category_color,
+            c.icon      AS category_icon
+        FROM record r
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        WHERE r.user_id = #{userId}
+          AND p.latitude IS NOT NULL
+          AND p.longitude IS NOT NULL
+        ORDER BY r.recorded_at DESC, r.created_at DESC
+    </select>
+
+    <select id="findMapRecordsByTripId" resultMap="MapRecordResultMap">
+        SELECT
+            r.id,
+            r.type,
+            p.name      AS place_name,
+            p.latitude,
+            p.longitude,
+            (
+                SELECT ri.image_url
+                FROM record_image ri
+                WHERE ri.record_id = r.id
+                ORDER BY ri.is_representative DESC, ri.order_index ASC
+                LIMIT 1
+            )           AS representative_image_url,
+            DATE_FORMAT(r.recorded_at, '%Y-%m-%d') AS recorded_at,
+            r.trip_id,
+            c.id        AS category_id,
+            c.name      AS category_name,
+            c.color     AS category_color,
+            c.icon      AS category_icon
+        FROM record r
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        WHERE r.trip_id = #{tripId}
+          AND p.latitude IS NOT NULL
+          AND p.longitude IS NOT NULL
+        ORDER BY r.recorded_at ASC, r.created_at ASC
+    </select>
+
+    <!-- 공유 그룹 타임라인 (visibility = SHARED인 기록만) -->
+    <select id="findSharedTimelineByGroupId" resultMap="RecordResultMap">
+        SELECT
+        <include refid="recordColumns"/>
+        FROM record r
+        INNER JOIN share_member sm ON r.user_id = sm.user_id
+        LEFT JOIN place p ON r.place_id = p.id
+        LEFT JOIN category c ON r.category_id = c.id
+        LEFT JOIN record_image ri ON r.id = ri.record_id
+        WHERE sm.share_group_id = #{groupId}
+          AND r.visibility = 'SHARED'
+        ORDER BY r.recorded_at DESC, r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countSharedTimelineByGroupId" resultType="long">
+        SELECT COUNT(DISTINCT r.id)
+        FROM record r
+        INNER JOIN share_member sm ON r.user_id = sm.user_id
+        WHERE sm.share_group_id = #{groupId}
+          AND r.visibility = 'SHARED'
+    </select>
+
+    <select id="countDiaryByUserId" resultType="long">
+        SELECT COUNT(*)
+        FROM record
+        WHERE user_id = #{userId}
+          AND content IS NOT NULL
+          AND content != ''
+    </select>
+
+</mapper>

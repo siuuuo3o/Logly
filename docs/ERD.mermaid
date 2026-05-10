@@ -1,0 +1,94 @@
+erDiagram
+    USER {
+        bigint id PK
+        string email UK
+        string password
+        string nickname
+        string profile_image_url
+        string provider "LOCAL / KAKAO / GOOGLE / APPLE"
+        string provider_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    SHARE_GROUP {
+        bigint id PK
+        string invite_code UK
+        datetime created_at
+    }
+
+    SHARE_MEMBER {
+        bigint id PK
+        bigint share_group_id FK
+        bigint user_id FK
+        string role "OWNER / MEMBER"
+        datetime joined_at
+    }
+
+    TRIP {
+        bigint id PK
+        bigint share_group_id FK
+        bigint created_by FK
+        string title
+        string cover_image_url
+        date start_date
+        date end_date
+        boolean is_active
+        datetime created_at
+        datetime updated_at
+    }
+
+    RECORD {
+        bigint id PK
+        bigint user_id FK
+        bigint trip_id FK "nullable - 여행 연결 선택"
+        bigint place_id FK
+        string type "DAILY / TRAVEL"
+        string content "일기 본문"
+        string diary_title "nullable"
+        string weather
+        float temperature
+        string visibility "PRIVATE / SHARED"
+        date recorded_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    RECORD_IMAGE {
+        bigint id PK
+        bigint record_id FK
+        string image_url
+        boolean is_representative
+        int order_index
+        datetime created_at
+    }
+
+    PLACE {
+        bigint id PK
+        string name
+        string address
+        float latitude
+        float longitude
+        string category "CAFE / RESTAURANT / NATURE / ETC"
+        datetime created_at
+    }
+
+    AI_ASSIST_LOG {
+        bigint id PK
+        bigint record_id FK
+        bigint user_id FK
+        string assist_type "DRAFT / CONTINUE / TITLE"
+        string prompt_summary
+        datetime created_at
+    }
+
+    USER ||--o{ SHARE_MEMBER : "belongs to"
+    SHARE_GROUP ||--o{ SHARE_MEMBER : "has"
+    SHARE_GROUP ||--o{ TRIP : "owns"
+    USER ||--o{ TRIP : "creates"
+    USER ||--o{ RECORD : "writes"
+    TRIP ||--o{ RECORD : "contains"
+    PLACE ||--o{ RECORD : "tagged in"
+    RECORD ||--o{ RECORD_IMAGE : "has"
+    RECORD ||--o{ AI_ASSIST_LOG : "uses"
+    USER ||--o{ AI_ASSIST_LOG : "requests"
